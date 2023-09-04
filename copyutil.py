@@ -143,9 +143,12 @@ class Application(Frame):
         if not self.checkFolders():
             return
 
+        targetFiles = []
         for folder, subs, files in os.walk(self.target):
-            targetFiles = files
-            print(targetFiles)
+            for file in files:
+                targetFiles.append(file)
+        
+        print('target files: ', targetFiles)
 
         self.fileList.delete(0, END)
 
@@ -160,11 +163,11 @@ class Application(Frame):
                     self.fileList.insert(END, file)
                     to_copy += 1
         
-        if to_copy == 0:
-            messagebox.showwarning('No Files', 'All source files in target folder. No files to copy.')
+
+        # if to_copy == 0:
+        #     messagebox.showwarning('No Files', 'All source files in target folder. No files to copy.')
 
         self.fscroller.config(command=self.fileList.yview)
-
 
     # def setScript(self):
 
@@ -194,8 +197,20 @@ class Application(Frame):
         for folder, subs, fileNames in os.walk(self.source):
 
             for file in fileNames:
+
                 if file in files_to_copy:
-                    shutil.copy(os.path.join(folder, file), self.target)                        
+                    sub = os.path.relpath(folder, self.source)
+
+                    # Check if the subfolder already exists in the target folder and create it if it is not
+
+                    if sub != ".":
+                        if os.path.exists(os.path.join(self.target, sub)):
+                            pass
+                        else:
+                            os.chdir(self.target)
+                            os.makedirs(sub)
+
+                    shutil.copy(os.path.join(folder, file), os.path.join(self.target, sub))                        
                     copied += 1
 
         self.processControl(0)
